@@ -37,31 +37,38 @@ javaOptions ++= {
 }
 
 
-
-
-lazy val lwjglNativeDependencies =
-    ("org.lwjgl", "lwjgl") ::
-    ("org.lwjgl", "lwjgl-glfw") ::
-    ("org.lwjgl", "lwjgl-jemalloc") ::
-    ("org.lwjgl", "lwjgl-openal") ::
-    ("org.lwjgl", "lwjgl-opengles") ::
-    ("org.lwjgl", "lwjgl-stb") ::
+// 1 -- has native & non native dependencies
+// 2 -- native only dependency
+// 3 -- non native only dependency
+lazy val lwjglDependencies =
+    (3, "org.lwjgl", "lwjgl-egl") ::
+    (1, "org.lwjgl", "lwjgl") ::
+    (1, "org.lwjgl", "lwjgl-glfw") ::
+    (1, "org.lwjgl", "lwjgl-jemalloc") ::
+    (1, "org.lwjgl", "lwjgl-openal") ::
+    (1, "org.lwjgl", "lwjgl-opengles") ::
+    (1, "org.lwjgl", "lwjgl-stb") ::
     Nil
 
 
+lazy val lwjglNativeDependencies = lwjglDependencies.filter{
+    case(usage, _, _) => if (usage==1 || usage==2) true else false
+}
+
+lazy val lwjglNonNativeDependencies = lwjglDependencies.filter{
+    case(usage, _, _) => if (usage==1 || usage==3) true else false
+}
+
+
 libraryDependencies ++= {
-    def libraryDependenciesNativeClassifier(cl: String) = lwjglNativeDependencies.map{ case (ns, name)=>
+
+    def libraryDependenciesNativeClassifier(cl: String) =  lwjglNativeDependencies.map{ case (_, ns, name)=>
         (ns % name % lwjglVersion % "natives" classifier cl)
     }
 
-    Seq(
-        "org.lwjgl" % "lwjgl"           % lwjglVersion,
-        "org.lwjgl" % "lwjgl-egl"       % lwjglVersion,
-        "org.lwjgl" % "lwjgl-glfw"      % lwjglVersion,
-        "org.lwjgl" % "lwjgl-jemalloc"  % lwjglVersion,
-        "org.lwjgl" % "lwjgl-openal"    % lwjglVersion,
-        "org.lwjgl" % "lwjgl-opengles"  % lwjglVersion,
-        "org.lwjgl" % "lwjgl-stb"       % lwjglVersion) ++
+    lwjglNonNativeDependencies.map{ case (_, ns, name)=>
+            ns % name % lwjglVersion
+    } ++
     libraryDependenciesNativeClassifier("natives-windows") ++
     libraryDependenciesNativeClassifier("natives-linux") ++
     libraryDependenciesNativeClassifier("natives-macos")
@@ -69,7 +76,7 @@ libraryDependencies ++= {
 
 
 nativeExtractions := {
-    lwjglNativeDependencies.flatMap{ case (ns, name)=>
+    lwjglDependencies.flatMap{ case (_, ns, name)=>
         (s"${name}-${lwjglVersion}-natives-linux.jar", AllPassFilter, baseDirectory.value / "lib/linux") ::
         (s"${name}-${lwjglVersion}-natives-windows.jar", AllPassFilter, baseDirectory.value / "lib/windows") ::
         (s"${name}-${lwjglVersion}-natives-macos.jar", AllPassFilter, baseDirectory.value / "lib/macos") ::
