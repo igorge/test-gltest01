@@ -2,6 +2,8 @@
 generated/
 cmake-build-*
 target
+lib
+
 
 
 
