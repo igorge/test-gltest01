@@ -10,6 +10,8 @@ scalacOptions := Seq("-optimise", "-Xlint", "-unchecked", "-deprecation", "-enco
 
 libraryDependencies += "biz.enef" %% "slogging" % "0.5.2"
 
+libraryDependencies += "com.jsuereth" %% "scala-arm" % "2.0"
+
 libraryDependencies += "gie" %% "sml" % "0.1-SNAPSHOT"
 
 //exportJars := true

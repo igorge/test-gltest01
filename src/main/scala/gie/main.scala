@@ -1,12 +1,20 @@
 package gie.gltest01
 
 
+//import org.lwjgl.opengles.GLES20.cre
 import org.lwjgl.system.MemoryUtil.NULL
 import org.lwjgl.glfw.{GLFW, GLFWErrorCallback}
+import org.lwjgl.glfw.GLFW._
+import org.lwjgl.opengles.GLES
+import org.lwjgl.opengles.GLES20._
 import slogging._
+import resource._
 
 
 object Main extends LazyLogging {
+
+    //def
+
     def main(args: Array[String]): Unit={
 
         LoggerConfig.factory = PrintLoggerFactory
@@ -18,10 +26,31 @@ object Main extends LazyLogging {
         val initResult=GLFW.glfwInit()
         assume(initResult)
 
-        val window = GLFW.glfwCreateWindow(1024, 1024, "Hello World!", NULL, NULL)
+        for{ window <- makeManagedResource{
+                            val w = glfwCreateWindow(1024, 1024, "Hello World!", NULL, NULL)
+                            assume(w != NULL)
+                            w
+                      }(glfwDestroyWindow)(Nil)
+        }{
+            assume(window != NULL)
 
-        assume(window != NULL)
-        GLFW.glfwDestroyWindow(window)
+            glfwMakeContextCurrent(window)
+            glfwSwapInterval(1)
+            glfwShowWindow(window)
+
+            GLES.createCapabilities()
+            glClearColor(1.0f, 0.0f, 0.0f, 0.0f)
+
+
+            while ( !glfwWindowShouldClose(window) ) {
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
+                glfwSwapBuffers(window)
+                glfwPollEvents()
+            }
+
+        }
+
     }
 
 }
