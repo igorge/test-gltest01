@@ -33,7 +33,10 @@ lazy val nativeExtractions = SettingKey[Seq[(String, NameFilter, File)]](
 lazy val extractNatives = TaskKey[Unit]("extract-natives", "Extracts native files")
 
 javaOptions ++= {
-    val options = List ( s"-Djava.library.path=${baseDirectory.value}/lib/${osName}"  )
+    val options =
+        s"-Djava.library.path=${baseDirectory.value}/lib/${osName}"  ::
+        "-Xdebug" :: "-agentlib:jdwp=transport=dt_socket,address=5005,server=y,suspend=n" ::
+        Nil
     
     options
 }
