@@ -1,6 +1,7 @@
 package gie.gl
 
 import org.lwjgl.opengles.GLES20._
+import slogging.{LazyLogging, Logger, LoggerHolder, StrictLogging}
 
 final object LwjglContext extends Constants {
     final val NO_ERROR = GL_NO_ERROR
@@ -59,10 +60,27 @@ final object LwjglContext extends Constants {
 }
 
 
-class LwjglContext extends Context {
+class LwjglContext extends Context with resource.ResourceContext with LazyLogging {
+
+
+    private class GlBufferResource(handle: Int) extends resource.DisposableOnceAbstract[Int](handle){
+
+        protected def release(): Unit = {
+            assume(this.get != 0)
+            glDeleteBuffers(this.get)
+        }
+    }
+
+
     type GLShader = this.type
     type GLProgram = this.type
-    type GLBuffer = this.type
+
+    class GLBuffer(resource: GlBufferResource){
+        def get = resource.get
+        def apply() = get
+        def dispose() = resource.dispose()
+    }
+
     type GLUniformLocation = this.type
     type GLTexture = this.type
 
@@ -74,9 +92,9 @@ class LwjglContext extends Context {
 
     def program_null_?(x: LwjglContext.this.type): Boolean = ???
 
-    def buffer_null: LwjglContext.this.type = ???
+    def buffer_null: GLBuffer = null
 
-    def buffer_null_?(x: LwjglContext.this.type): Boolean = ???
+    def buffer_null_?(x: GLBuffer): Boolean = ???
 
     def texture_null: LwjglContext.this.type = ???
 
@@ -134,21 +152,34 @@ class LwjglContext extends Context {
 
     def impl_glUseProgram(program: LwjglContext.this.type): Unit = ???
 
-    def impl_glBindBuffer(target: GLVertexAttributeLocation, buffer: LwjglContext.this.type): Unit = ???
+    def impl_glBindBuffer(target: GLVertexAttributeLocation, buffer: GLBuffer): Unit = {
+        glBindBuffer(target, if(buffer eq null) 0 else buffer.get)
+    }
 
-    def impl_glCreateBuffer(): LwjglContext.this.type = ???
+    def impl_glCreateBuffer(): GLBuffer = {
+        val resource = new GlBufferResource (glGenBuffers() )
+        val buffer = new GLBuffer( resource )
+        this.registerResourceReference(buffer, resource)
 
-    def impl_glDeleteBuffer(buffer: LwjglContext.this.type): Unit = ???
+        buffer
+    }
 
-    def impl_glBufferDataFloat(target: GLVertexAttributeLocation, data: Array[Float], usage: GLVertexAttributeLocation): Unit = ???
+    def impl_glDeleteBuffer(buffer: GLBuffer): Unit = {
+        buffer.dispose()
+    }
 
-    def impl_glBufferDataFloat(target: GLVertexAttributeLocation, data: Seq[Float], usage: GLVertexAttributeLocation): Unit = ???
+    def impl_glBufferDataFloat(target: Int, data: Array[Float], usage: Int): Unit ={
+        glBufferData(target, data, usage)
+        checkGlError()
+    }
 
-    def impl_glBufferDataInt(target: GLVertexAttributeLocation, data: Array[GLVertexAttributeLocation], usage: GLVertexAttributeLocation): Unit = ???
+    def impl_glBufferDataFloat(target: Int, data: Seq[Float], usage: Int): Unit = ???
 
-    def impl_glBufferDataInt(target: GLVertexAttributeLocation, data: Seq[GLVertexAttributeLocation], usage: GLVertexAttributeLocation): Unit = ???
+    def impl_glBufferDataInt(target: Int, data: Array[Int], usage: Int): Unit = ???
 
-    def impl_glBufferDataUnsignedShort(target: GLVertexAttributeLocation, data: Array[GLVertexAttributeLocation], usage: GLVertexAttributeLocation): Unit = ???
+    def impl_glBufferDataInt(target: Int, data: Seq[Int], usage: Int): Unit = ???
+
+    def impl_glBufferDataUnsignedShort(target: Int, data: Array[Int], usage: Int): Unit = ???
 
     def impl_glBufferDataUnsignedShort(target: GLVertexAttributeLocation, data: Seq[GLVertexAttributeLocation], usage: GLVertexAttributeLocation): Unit = ???
 

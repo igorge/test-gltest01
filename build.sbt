@@ -20,9 +20,12 @@ lazy val osName = System.getProperty("os.name").split(" ")(0).toLowerCase()
 
 
 
+resolvers +=
+    "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
+
 /// lwjgl
 
-val lwjglVersion = "3.1.1"
+val lwjglVersion = "3.1.2-SNAPSHOT"
 
 ivyConfigurations += config("natives")
 

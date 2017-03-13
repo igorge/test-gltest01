@@ -15,7 +15,8 @@ object Main extends LazyLogging {
 
     val gl = new gie.gl.LwjglContext
 
-    //def
+    import gie.gl.RichImplicits._
+    val triangle = Array(-1f,0f,0f, 0f,1f,0f, 1f,0f,0f)
 
     def main(args: Array[String]): Unit={
 
@@ -27,6 +28,8 @@ object Main extends LazyLogging {
         GLFWErrorCallback.createPrint(System.err).set()
         val initResult=GLFW.glfwInit()
         assume(initResult)
+
+        import gl.BufferDataDispatch._
 
         for {
             window <- makeManagedResource{ val w = glfwCreateWindow(1024, 1024, "Hello World!", NULL, NULL); assume(w != NULL); w }(glfwDestroyWindow)(Nil)
@@ -40,13 +43,18 @@ object Main extends LazyLogging {
             GLES.createCapabilities()
             gl.clearColor(0.0f, 1.0f, 0.0f, 0.0f)
 
+            gl.createBuffer(gl.const.ARRAY_BUFFER, triangle, gl.const.STATIC_DRAW)
 
             while ( !glfwWindowShouldClose(window) ) {
                 gl.clear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
                 glfwSwapBuffers(window)
                 glfwPollEvents()
+
             }
+
+            gl.dispose()
+            gl.gcAllOnQueue()
 
         }
 
