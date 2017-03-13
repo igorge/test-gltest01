@@ -3,7 +3,11 @@ package gie.gl
 import org.lwjgl.opengles.GLES20._
 import slogging.{LazyLogging, Logger, LoggerHolder, StrictLogging}
 
+import scala.annotation.switch
+
 final object LwjglContext extends Constants {
+    final val TRUE: Int = GL_TRUE
+    final val FALSE: Int = GL_FALSE
     final val NO_ERROR = GL_NO_ERROR
     final val TRIANGLES: Int = GL_TRIANGLES
     final val COLOR_BUFFER_BIT: Int = GL_COLOR_BUFFER_BIT
@@ -63,7 +67,7 @@ final object LwjglContext extends Constants {
 class LwjglContext extends Context with resource.ResourceContext with LazyLogging {
 
 
-    private class GlBufferResource(handle: Int) extends resource.DisposableOnceAbstract[Int](handle){
+    private class GLBufferResource(handle: Int) extends resource.DisposableOnceAbstract[Int](handle){
 
         protected def release(): Unit = {
             assume(this.get != 0)
@@ -71,11 +75,36 @@ class LwjglContext extends Context with resource.ResourceContext with LazyLoggin
         }
     }
 
+    class GLBuffer(resource: GLBufferResource){
+        def get = resource.get
+        def apply() = get
+        def dispose() = resource.dispose()
+    }
 
-    type GLShader = this.type
-    type GLProgram = this.type
 
-    class GLBuffer(resource: GlBufferResource){
+
+    private class GLShaderResource(handle: Int) extends resource.DisposableOnceAbstract[Int](handle){
+        protected def release(): Unit = {
+            assume(this.get != 0)
+            glDeleteShader(this.get)
+        }
+    }
+
+    class GLShader(resource: GLShaderResource){
+        def get = resource.get
+        def apply() = get
+        def dispose() = resource.dispose()
+    }
+
+
+    private class GLProgramResource(handle: Int) extends resource.DisposableOnceAbstract[Int](handle){
+        protected def release(): Unit = {
+            assume(this.get != 0)
+            glDeleteProgram(this.get)
+        }
+    }
+
+    class GLProgram(resource: GLProgramResource){
         def get = resource.get
         def apply() = get
         def dispose() = resource.dispose()
@@ -120,19 +149,47 @@ class LwjglContext extends Context with resource.ResourceContext with LazyLoggin
 
     def impl_glGetIntegerv(pname: GLVertexAttributeLocation): GLVertexAttributeLocation = ???
 
-    def impl_glCreateShader(shaderType: GLVertexAttributeLocation): LwjglContext.this.type = ???
+    def impl_glCreateShader(shaderType: Int): GLShader = {
+        val resource = new GLShaderResource( glCreateShader(shaderType) )
+        val shader = new GLShader( resource )
+        this.registerResourceReference(shader, resource)
 
-    def impl_glDeleteShader(shader: LwjglContext.this.type): Unit = ???
+        shader
+    }
 
-    def impl_glShaderSource(shader: LwjglContext.this.type, src: String): Unit = ???
+    def impl_glDeleteShader(shader: GLShader): Unit = {
+        shader.dispose()
+    }
 
-    def impl_glCompileShader(shader: LwjglContext.this.type): Unit = ???
+    def impl_glShaderSource(shader: GLShader, src: String): Unit = {
+        glShaderSource(shader.get, src)
+    }
 
-    def impl_glGetShaderiv(shader: LwjglContext.this.type, pname: GLVertexAttributeLocation): GLVertexAttributeLocation = ???
+    def impl_glCompileShader(shader: GLShader): Unit = {
+        glCompileShader(shader.get)
+    }
 
-    def impl_glGetShaderbv(shader: LwjglContext.this.type, pname: GLVertexAttributeLocation): Boolean = ???
+    def impl_glGetShaderiv(shader: GLShader, pname: Int): Int = {
+        val ret = new Array[Int](0)
+        
+        glGetShaderiv(shader.get, pname, ret)
+        assume(ret.size==1)
 
-    def impl_getShaderInfoLog(shader: LwjglContext.this.type): String = ???
+        return ret(0)
+    }
+
+    def impl_glGetShaderbv(shader: GLShader, pname: Int): Boolean = {
+        val iret = impl_glGetShaderiv(shader, pname)
+        iret match {
+            case const.TRUE => true
+            case const.FALSE => false
+            case _ => ???
+        }
+    }
+
+    def impl_getShaderInfoLog(shader: GLShader): String = {
+        glGetShaderInfoLog(shader.get)
+    }
 
     def impl_glCreateProgram(): LwjglContext.this.type = ???
 
@@ -157,7 +214,7 @@ class LwjglContext extends Context with resource.ResourceContext with LazyLoggin
     }
 
     def impl_glCreateBuffer(): GLBuffer = {
-        val resource = new GlBufferResource (glGenBuffers() )
+        val resource = new GLBufferResource (glGenBuffers() )
         val buffer = new GLBuffer( resource )
         this.registerResourceReference(buffer, resource)
 

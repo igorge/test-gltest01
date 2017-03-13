@@ -1,6 +1,8 @@
 package gie.gl
 
 trait Constants {
+  val TRUE: Int
+  val FALSE: Int
   val NO_ERROR: Int
   val TRIANGLES: Int
   val COLOR_BUFFER_BIT: Int

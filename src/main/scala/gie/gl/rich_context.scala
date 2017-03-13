@@ -1,4 +1,4 @@
 package gie.gl
 
 
-object RichImplicits extends BufferOpsTrait 
+object RichImplicits extends RichOpsTrait
