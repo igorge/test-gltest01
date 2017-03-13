@@ -13,6 +13,8 @@ import resource._
 
 object Main extends LazyLogging {
 
+    val gl = new gie.gl.LwjglContext
+
     //def
 
     def main(args: Array[String]): Unit={
@@ -26,12 +28,9 @@ object Main extends LazyLogging {
         val initResult=GLFW.glfwInit()
         assume(initResult)
 
-        for{ window <- makeManagedResource{
-                            val w = glfwCreateWindow(1024, 1024, "Hello World!", NULL, NULL)
-                            assume(w != NULL)
-                            w
-                      }(glfwDestroyWindow)(Nil)
-        }{
+        for {
+            window <- makeManagedResource{ val w = glfwCreateWindow(1024, 1024, "Hello World!", NULL, NULL); assume(w != NULL); w }(glfwDestroyWindow)(Nil)
+        } {
             assume(window != NULL)
 
             glfwMakeContextCurrent(window)
@@ -39,11 +38,11 @@ object Main extends LazyLogging {
             glfwShowWindow(window)
 
             GLES.createCapabilities()
-            glClearColor(1.0f, 0.0f, 0.0f, 0.0f)
+            gl.clearColor(0.0f, 1.0f, 0.0f, 0.0f)
 
 
             while ( !glfwWindowShouldClose(window) ) {
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+                gl.clear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
                 glfwSwapBuffers(window)
                 glfwPollEvents()
