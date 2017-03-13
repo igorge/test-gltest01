@@ -19,6 +19,7 @@ libraryDependencies += "gie" %% "sml" % "0.1-SNAPSHOT"
 lazy val osName = System.getProperty("os.name").split(" ")(0).toLowerCase()
 
 
+updateOptions := updateOptions.value.withLatestSnapshots(false)
 
 resolvers +=
     "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
