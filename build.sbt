@@ -1,50 +1,21 @@
-name := "gltest01"
 
-fork in run := true
+lazy val root = project.in(file(".")).
+  aggregate(appJS, appJVM).
+  settings(
+    publish := {},
+    publishLocal := {}
+  )
 
-version := "0.1"
-
-scalaVersion := "2.12.1"
-
-scalacOptions := Seq("-optimise", "-Xlint", "-unchecked", "-deprecation", "-encoding", "utf8", "-feature")
-
-libraryDependencies += "biz.enef" %% "slogging" % "0.5.2"
-
-libraryDependencies += "com.jsuereth" %% "scala-arm" % "2.0"
-
-libraryDependencies += "gie" %% "sml" % "0.1-SNAPSHOT"
-
-//exportJars := true
-
-lazy val osName = System.getProperty("os.name").split(" ")(0).toLowerCase()
-
-
-updateOptions := updateOptions.value.withLatestSnapshots(false)
-
-resolvers +=
-    "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
-
-/// lwjgl
+  
+lazy val osName = System.getProperty("os.name").split(" ")(0).toLowerCase()  
 
 val lwjglVersion = "3.1.2-SNAPSHOT"
-
-ivyConfigurations += config("natives")
 
 lazy val nativeExtractions = SettingKey[Seq[(String, NameFilter, File)]](
     "native-extractions", "(jar name partial, sbt.NameFilter of files to extract, destination directory)"
 )
 
 lazy val extractNatives = TaskKey[Unit]("extract-natives", "Extracts native files")
-
-javaOptions ++= {
-    val options =
-        s"-Djava.library.path=${baseDirectory.value}/lib/${osName}"  ::
-        "-Xdebug" :: "-agentlib:jdwp=transport=dt_socket,address=5005,server=y,suspend=n" ::
-        Nil
-    
-    options
-}
-
 
 // 1 -- has native & non native dependencies
 // 2 -- native only dependency
@@ -68,46 +39,73 @@ lazy val lwjglNonNativeDependencies = lwjglDependencies.filter{
     case(usage, _, _) => if (usage==1 || usage==3) true else false
 }
 
+lazy val app = crossProject.in(file(".")).
+  settings(
+    organization := "gie",
+    name := "gltest01",
+    version := "0.1",
+    scalaVersion := "2.12.1",
+    scalacOptions := Seq("-optimise", "-Xlint", "-unchecked", "-deprecation", "-encoding", "utf8", "-feature"),
+    libraryDependencies += "com.lihaoyi" %%% "utest" % "0.4.5" % "test",
+    libraryDependencies += "biz.enef" %%% "slogging" % "0.5.2",
+    testFrameworks += new TestFramework("utest.runner.Framework")
+  ).
+  jvmSettings(
+    // Add JVM-specific settings here
+    javaOptions ++= {
+        val options =
+            s"-Djava.library.path=${baseDirectory.value}/lib/${osName}"  ::
+            "-Xdebug" :: "-agentlib:jdwp=transport=dt_socket,address=5005,server=y,suspend=n" ::
+             Nil
+    
+        options
+    },
+    fork in run := true,
+    updateOptions := updateOptions.value.withLatestSnapshots(false),
+    resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
+    ivyConfigurations += config("natives"),
+    libraryDependencies += "com.jsuereth" %%% "scala-arm" % "2.0",
+    libraryDependencies ++= {
 
-libraryDependencies ++= {
-
-    def libraryDependenciesNativeClassifier(cl: String) =  lwjglNativeDependencies.map{ case (_, ns, name)=>
-        (ns % name % lwjglVersion % "natives" classifier cl)
-    }
-
-    lwjglNonNativeDependencies.map{ case (_, ns, name)=>
-            ns % name % lwjglVersion
-    } ++
-    libraryDependenciesNativeClassifier("natives-windows") ++
-    libraryDependenciesNativeClassifier("natives-linux") ++
-    libraryDependenciesNativeClassifier("natives-macos")
-}
-
-
-nativeExtractions := {
-    lwjglDependencies.flatMap{ case (_, ns, name)=>
-        (s"${name}-${lwjglVersion}-natives-linux.jar", AllPassFilter, baseDirectory.value / "lib/linux") ::
-        (s"${name}-${lwjglVersion}-natives-windows.jar", AllPassFilter, baseDirectory.value / "lib/windows") ::
-        (s"${name}-${lwjglVersion}-natives-macos.jar", AllPassFilter, baseDirectory.value / "lib/macos") ::
-        Nil
-    }
-}
-
-
-extractNatives := {
-    val ne = nativeExtractions.value
-    val up = update.value
-
-    val jars = up.select(configurationFilter("natives"))
-
-    ne foreach { case (jarName, fileFilter, outputPath) =>
-        jars find(_.getName.contains(jarName)) map { jar =>
-            IO.unzip(jar, outputPath)
+        def libraryDependenciesNativeClassifier(cl: String) =  lwjglNativeDependencies.map{ case (_, ns, name)=>
+            (ns % name % lwjglVersion % "natives" classifier cl)
         }
-    }
-}
 
-compile in Compile := ((compile in Compile) dependsOn (extractNatives)).value
+        lwjglNonNativeDependencies.map{ case (_, ns, name)=>
+                ns % name % lwjglVersion
+        } ++
+        libraryDependenciesNativeClassifier("natives-windows") ++
+        libraryDependenciesNativeClassifier("natives-linux") ++
+        libraryDependenciesNativeClassifier("natives-macos")
+    },
+    nativeExtractions := {
+        lwjglDependencies.flatMap{ case (_, ns, name)=>
+            (s"${name}-${lwjglVersion}-natives-linux.jar", AllPassFilter, baseDirectory.value / "lib/linux") ::
+            (s"${name}-${lwjglVersion}-natives-windows.jar", AllPassFilter, baseDirectory.value / "lib/windows") ::
+            (s"${name}-${lwjglVersion}-natives-macos.jar", AllPassFilter, baseDirectory.value / "lib/macos") ::
+            Nil
+        }
+    },
+    extractNatives := {
+        val ne = nativeExtractions.value
+        val up = update.value
 
-// END lwjgl
+        val jars = up.select(configurationFilter("natives"))
 
+        ne foreach { case (jarName, fileFilter, outputPath) =>
+            jars find(_.getName.contains(jarName)) map { jar =>
+                IO.unzip(jar, outputPath)
+            }
+        }
+    },
+    compile in Compile := ((compile in Compile) dependsOn (extractNatives)).value
+  ).
+  jsSettings(
+    jsDependencies += RuntimeDOM,
+    libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "0.9.1"
+    // Add JS-specific settings here
+    
+  )
+
+lazy val appJVM = app.jvm
+lazy val appJS = app.js
