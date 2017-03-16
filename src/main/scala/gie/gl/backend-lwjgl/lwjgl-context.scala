@@ -128,7 +128,7 @@ class LwjglContext extends Context with resource.ResourceContext with LazyLoggin
 
     def buffer_null: GLBuffer = null
 
-    def buffer_null_?(x: GLBuffer): Boolean = ???
+    def buffer_null_?(x: GLBuffer): Boolean = x eq null
 
     def texture_null: LwjglContext.this.type = ???
 
@@ -152,14 +152,29 @@ class LwjglContext extends Context with resource.ResourceContext with LazyLoggin
 
     def impl_glDepthFunc(func: GLVertexAttributeLocation): Unit = ???
 
-    def impl_glGetIntegerv(pname: GLVertexAttributeLocation): GLVertexAttributeLocation = ???
+    def impl_glGetIntegerv(pname: Int): Int = {
+        glGetInteger(pname)
+    }
 
     def impl_glCreateShader(shaderType: Int): GLShader = {
-        val resource = new GLShaderResource( glCreateShader(shaderType) )
-        val shader = new GLShader( resource )
-        this.registerResourceReference(shader, resource)
+        checkGlError()
 
-        shader
+        val glShaderId = glCreateShader(shaderType)
+        checkGlError()
+        assume(glShaderId!=0)
+
+        try {
+            val resource = new GLShaderResource( glShaderId )
+            val shader = new GLShader( resource )
+            this.registerResourceReference(shader, resource)
+
+            shader
+        } catch {
+            case ex: Throwable =>
+                glDeleteShader(glShaderId)
+                throw ex
+        }
+
     }
 
     def impl_glDeleteShader(shader: GLShader): Unit = {
