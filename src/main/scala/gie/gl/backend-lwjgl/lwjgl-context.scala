@@ -113,13 +113,18 @@ class LwjglContext extends Context with resource.ResourceContext with LazyLoggin
     type GLUniformLocation = this.type
     type GLTexture = this.type
 
+
+
+    private var m_currentProgram:GLProgram = null
+
+
     def uniformLocation_null: LwjglContext.this.type = ???
 
     def uniformLocation_null_?(x: LwjglContext.this.type): Boolean = ???
 
-    def program_null: LwjglContext.this.type = ???
+    def program_null: GLProgram = null
 
-    def program_null_?(x: LwjglContext.this.type): Boolean = ???
+    def program_null_?(x: GLProgram): Boolean = x eq null
 
     def buffer_null: GLBuffer = null
 
@@ -191,23 +196,47 @@ class LwjglContext extends Context with resource.ResourceContext with LazyLoggin
         glGetShaderInfoLog(shader.get)
     }
 
-    def impl_glCreateProgram(): LwjglContext.this.type = ???
+    def currentProgram(): GLProgram = {
+        val glProg = this.getInteger(const.CURRENT_PROGRAM)
 
-    def impl_glDeleteProgram(program: LwjglContext.this.type): Unit = ???
+        if( program_null_?(m_currentProgram) ){
+            assert( glProg==0 )
+            return program_null
+        } else {
+            assert( glProg==m_currentProgram.get)
+            return m_currentProgram
+        }
 
-    def impl_getProgramInfoLog(program: LwjglContext.this.type): String = ???
 
-    def impl_glGetProgramiv(program: LwjglContext.this.type, pname: GLVertexAttributeLocation): GLVertexAttributeLocation = ???
+    }
 
-    def impl_glGetProgrambv(program: LwjglContext.this.type, pname: GLVertexAttributeLocation): Boolean = ???
+    def impl_glCreateProgram(): GLProgram = ???
 
-    def impl_glAttachShader(program: LwjglContext.this.type, shader: LwjglContext.this.type): Unit = ???
+    def impl_glDeleteProgram(program: GLProgram): Unit = ???
 
-    def impl_glBindAttribLocation(program: LwjglContext.this.type, index: GLVertexAttributeLocation, name: String): Unit = ???
+    def impl_getProgramInfoLog(program: GLProgram): String = ???
 
-    def impl_glLinkProgram(program: LwjglContext.this.type): Unit = ???
+    def impl_glGetProgramiv(program: GLProgram, pname: GLVertexAttributeLocation): GLVertexAttributeLocation = ???
 
-    def impl_glUseProgram(program: LwjglContext.this.type): Unit = ???
+    def impl_glGetProgrambv(program: GLProgram, pname: GLVertexAttributeLocation): Boolean = ???
+
+    def impl_glAttachShader(program: GLProgram, shader: GLShader): Unit = ???
+
+    def impl_glBindAttribLocation(program: GLProgram, index: GLVertexAttributeLocation, name: String): Unit = ???
+
+    def impl_glLinkProgram(program: GLProgram): Unit = ???
+
+    def impl_glUseProgram(program: GLProgram): Unit = {
+        if( program_null_?(program) ) {
+            glUseProgram(0)
+            m_currentProgram = null
+        } else {
+            val glProg = program.get
+            assume(glProg!=0)
+            glUseProgram(glProg)
+            m_currentProgram = program
+        }
+    }
 
     def impl_glBindBuffer(target: GLVertexAttributeLocation, buffer: GLBuffer): Unit = {
         glBindBuffer(target, if(buffer eq null) 0 else buffer.get)
@@ -246,9 +275,9 @@ class LwjglContext extends Context with resource.ResourceContext with LazyLoggin
 
     def impl_glDisableVertexAttribArray(index: GLVertexAttributeLocation): Unit = ???
 
-    def impl_glGetUniformLocation(program: LwjglContext.this.type, name: String): LwjglContext.this.type = ???
+    def impl_glGetUniformLocation(program: GLProgram, name: String): LwjglContext.this.type = ???
 
-    def impl_glGetAttribLocation(program: LwjglContext.this.type, name: String): GLVertexAttributeLocation = ???
+    def impl_glGetAttribLocation(program: GLProgram, name: String): GLVertexAttributeLocation = ???
 
     def impl_glUniform1f(location: LwjglContext.this.type, x: Float): Unit = ???
 
@@ -278,5 +307,4 @@ class LwjglContext extends Context with resource.ResourceContext with LazyLoggin
 
     def impl_glTexImage2D(target: GLVertexAttributeLocation, level: GLVertexAttributeLocation, internalformat: GLVertexAttributeLocation, width: GLVertexAttributeLocation, height: GLVertexAttributeLocation, border: GLVertexAttributeLocation, format: GLVertexAttributeLocation, `type`: GLVertexAttributeLocation, pixels: Array[Byte]): Unit = ???
 
-    def currentProgram(): LwjglContext.this.type = ???
 }
