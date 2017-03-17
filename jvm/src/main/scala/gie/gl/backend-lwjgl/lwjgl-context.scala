@@ -6,8 +6,10 @@ import slogging.{LazyLogging, Logger, LoggerHolder, StrictLogging}
 import scala.annotation.switch
 
 final object LwjglContext extends Constants {
-    final val TRUE: Int = GL_TRUE
-    final val FALSE: Int = GL_FALSE
+    override type GL_BOOLEAN = Int
+
+    final val TRUE: GL_BOOLEAN = GL_TRUE
+    final val FALSE: GL_BOOLEAN = GL_FALSE
     final val NO_ERROR = GL_NO_ERROR
     final val TRIANGLES: Int = GL_TRIANGLES
     final val COLOR_BUFFER_BIT: Int = GL_COLOR_BUFFER_BIT
@@ -200,10 +202,13 @@ class LwjglContext extends Context with resource.ResourceContext with LazyLoggin
 
     def impl_glGetShaderbv(shader: GLShader, pname: Int): Boolean = {
         val iret = impl_glGetShaderiv(shader, pname)
-        iret match {
-            case const.TRUE => true
-            case const.FALSE => false
-            case _ => ???
+
+        if(iret==const.TRUE){
+            true
+        } else if (iret==const.FALSE){
+            false
+        } else {
+            ???
         }
     }
 

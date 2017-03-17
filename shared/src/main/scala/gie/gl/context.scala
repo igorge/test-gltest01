@@ -1,8 +1,10 @@
 package gie.gl
 
 trait Constants {
-  val TRUE: Int
-  val FALSE: Int
+  type GL_BOOLEAN
+  
+  val TRUE: GL_BOOLEAN
+  val FALSE: GL_BOOLEAN
   val NO_ERROR: Int
   val TRIANGLES: Int
   val COLOR_BUFFER_BIT: Int

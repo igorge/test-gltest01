@@ -48,6 +48,7 @@ lazy val app = crossProject.in(file(".")).
     scalacOptions := Seq("-optimise", "-Xlint", "-unchecked", "-deprecation", "-encoding", "utf8", "-feature"),
     libraryDependencies += "com.lihaoyi" %%% "utest" % "0.4.5" % "test",
     libraryDependencies += "biz.enef" %%% "slogging" % "0.5.2",
+    libraryDependencies += "gie" %%% "gielib" % "0.1-SNAPSHOT",
     testFrameworks += new TestFramework("utest.runner.Framework")
   ).
   jvmSettings(
