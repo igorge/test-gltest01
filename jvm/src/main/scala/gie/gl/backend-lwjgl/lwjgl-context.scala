@@ -138,21 +138,21 @@ class LwjglContext extends Context with resource.ResourceContext with LazyLoggin
 
     val const: Constants = LwjglContext
 
-    def impl_glGetError(): GLVertexAttributeLocation = glGetError()
+    def impl_glGetError(): Int = glGetError()
 
-    def impl_glClear(mask: GLVertexAttributeLocation): Unit = glClear(mask)
+    def impl_glClear(mask: Int): Unit = glClear(mask)
 
     def impl_glClearColor(red: Float, green: Float, blue: Float, alpha: Float): Unit = glClearColor(red, green, blue, alpha)
 
-    def impl_glViewport(x: GLVertexAttributeLocation, y: GLVertexAttributeLocation, width: GLVertexAttributeLocation, height: GLVertexAttributeLocation): Unit = ???
+    def impl_glViewport(x: Int, y: Int, width: Int, height: Int): Unit = ???
 
-    def impl_glEnable(cap: GLVertexAttributeLocation): Unit = ???
+    def impl_glEnable(cap: Int): Unit = ???
 
-    def impl_glDisable(cap: GLVertexAttributeLocation): Unit = ???
+    def impl_glDisable(cap: Int): Unit = ???
 
-    def impl_glBlendFunc(sfactor: GLVertexAttributeLocation, dfactor: GLVertexAttributeLocation): Unit = ???
+    def impl_glBlendFunc(sfactor: Int, dfactor: Int): Unit = ???
 
-    def impl_glDepthFunc(func: GLVertexAttributeLocation): Unit = ???
+    def impl_glDepthFunc(func: Int): Unit = ???
 
     def impl_glGetIntegerv(pname: Int): Int = {
         glGetInteger(pname)

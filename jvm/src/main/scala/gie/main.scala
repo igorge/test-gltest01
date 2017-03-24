@@ -11,7 +11,7 @@ import slogging._
 import resource._
 
 
-object Main extends LazyLogging {
+object app extends LazyLogging {
 
     val gl = new gie.gl.LwjglContext
 

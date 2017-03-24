@@ -102,10 +102,13 @@ lazy val app = crossProject.in(file(".")).
     compile in Compile := ((compile in Compile) dependsOn (extractNatives)).value
   ).
   jsSettings(
-    jsDependencies += RuntimeDOM,
-    libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "0.9.1"
-    // Add JS-specific settings here
-    
+      // Add JS-specific settings here
+      jsDependencies += RuntimeDOM,
+      libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "0.9.1",
+      
+      persistLauncher in Compile := true,
+      skip in packageJSDependencies := false//,
+      //mainClass := Some("gie.gltest01.app")
   )
 
 lazy val appJVM = app.jvm
