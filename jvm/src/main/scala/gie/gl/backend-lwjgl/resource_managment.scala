@@ -47,7 +47,7 @@ class ResourceReference(holder: AnyRef,
 
 
 
-trait ResourceContext { this: LoggerHolder =>
+trait ResourceContext extends AutoCloseable { this: LoggerHolder =>
 
     private lazy val m_homeTread = Thread.currentThread.getId
 
@@ -102,6 +102,7 @@ trait ResourceContext { this: LoggerHolder =>
         }
     }
 
+
     def dispose(): Unit ={
         impl_checkHome()
 
@@ -114,4 +115,10 @@ trait ResourceContext { this: LoggerHolder =>
         }
         logger.debug("gcForceClearAll()")
     }
+
+    def close(): Unit = {
+        dispose()
+    }
+
+
 }

@@ -46,9 +46,12 @@ lazy val app = crossProject.in(file(".")).
     version := "0.1",
     scalaVersion := "2.12.1",
     scalacOptions := Seq("-Xlint", "-unchecked", "-deprecation", "-encoding", "utf8", "-feature"), //"-optimise"
+      
     libraryDependencies += "com.lihaoyi" %%% "utest" % "0.4.5" % "test",
     libraryDependencies += "biz.enef" %%% "slogging" % "0.5.2",
     libraryDependencies += "gie" %%% "gielib" % "0.1-SNAPSHOT",
+    libraryDependencies += "org.scala-lang.modules" %% "scala-async" % "0.9.6",
+
     testFrameworks += new TestFramework("utest.runner.Framework")
   ).
   jvmSettings(
@@ -65,7 +68,6 @@ lazy val app = crossProject.in(file(".")).
     updateOptions := updateOptions.value.withLatestSnapshots(false),
     resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
     ivyConfigurations += config("natives"),
-    libraryDependencies += "com.jsuereth" %%% "scala-arm" % "2.0",
     libraryDependencies ++= {
 
         def libraryDependenciesNativeClassifier(cl: String) =  lwjglNativeDependencies.map{ case (_, ns, name)=>
