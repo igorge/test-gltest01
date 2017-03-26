@@ -2,6 +2,7 @@ package gie.gltest01
 
 
 //import org.lwjgl.opengles.GLES20.cre
+import gie.concurrent.PostingExecutionContextRunner
 import org.lwjgl.system.MemoryUtil.NULL
 import org.lwjgl.glfw.{GLFW, GLFWErrorCallback}
 import org.lwjgl.glfw.GLFW._
@@ -10,8 +11,13 @@ import org.lwjgl.opengles.GLES20._
 import slogging._
 import resource._
 
+import scala.concurrent.Future
+
 
 object app extends LazyLogging {
+
+    val th = new PostingExecutionContextRunner()
+    //val glContextExecutor = new PostingExecutionContextRunner().executionContext
 
     val gl = new gie.gl.LwjglContext
 
@@ -30,6 +36,12 @@ object app extends LazyLogging {
         assume(initResult)
 
         import gl.BufferDataDispatch._
+
+//        th.queue.submit(new Runnable {
+//            def run(): Unit = {
+//                println("hello")
+//            }
+//        })
 
         for {
             window <- makeManagedResource{ val w = glfwCreateWindow(1024, 1024, "Hello World!", NULL, NULL); assume(w != NULL); w }(glfwDestroyWindow)(Nil)
@@ -51,10 +63,17 @@ object app extends LazyLogging {
                 glfwSwapBuffers(window)
                 glfwPollEvents()
 
+//                Future{
+//
+//                    println("hello")
+//
+//                 }(glContextExecutor)
+
             }
 
             gl.dispose()
             gl.gcAllOnQueue()
+
 
         }
 

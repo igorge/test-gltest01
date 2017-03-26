@@ -1,6 +1,6 @@
 package gie.concurrent
 
-import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.{ConcurrentLinkedQueue, Executors}
 
 import scala.concurrent.ExecutionContextExecutor
 
@@ -15,29 +15,16 @@ class PostingExecutionContext(private val enqueue: Runnable=>Unit) extends Execu
 }
 
 
-class PackagedPostingExecutionContext {
+class PostingExecutionContextRunner {
 
-    val queue = new ConcurrentLinkedQueue[Runnable]()
-    val executionContext = new PostingExecutionContext( queue.add(_) )
-
-    def run(): Boolean ={
-        val runnable = queue.poll()
-
-        if(runnable eq null) {
-            false
-        } else {
-            runnable.run()
-            true
-        }
-
+    val queue = Executors.newSingleThreadExecutor()
+    private def enqueue(runnable: Runnable): Unit = {
+        queue.submit(runnable)
     }
-
-    def runAll(): Unit ={
-        while( run() ){
-            
-        }
-    }
+    val executionContext = new PostingExecutionContext( enqueue )
 
 }
+
+
 
 
