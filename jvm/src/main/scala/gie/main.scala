@@ -21,74 +21,85 @@ import scala.concurrent.Future
 
 import scala.async.Async.{async, await}
 
+trait RenderingTrait { this: LoggerHolder =>
+    type GLT <: Context
+    type ExtT <: AnyRef
 
-object app extends LazyLogging {
+    implicit def glEc: ExecutionContext
+
+    def init(): Future[(GLT,ExtT)]
+
+    def renderFrame(gl: GLT): Future[Unit] = async {
+        gl.clear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+    }
+
+
+}
+
+
+object app extends RenderingTrait with LazyLogging {
 
     import gie.gl.RichImplicits._
+
+    case class ExtT(window: Long)
+    type GLT = gie.gl.LwjglContext
+
+    val glRunner  = new PostingExecutionContextRunner
+
+    implicit def glEc: ExecutionContext = glRunner.executionContext
+
+    def init(): Future[(GLT,ExtT)] = async {
+        val initResult=GLFW.glfwInit()
+        assume(initResult)
+        GLFWErrorCallback.createPrint(System.err).set()
+
+        val gl = new gie.gl.LwjglContext
+        val window = glfwCreateWindow(1024, 1024, "Hello World!", NULL, NULL)
+
+        glfwMakeContextCurrent(window)
+        //glfwSwapInterval(1)
+        glfwShowWindow(window)
+
+        GLES.createCapabilities()
+        gl.clearColor(0.0f, 1.0f, 0.0f, 0.0f)
+
+        ( gl, ExtT(window) )
+    }
+
     val triangle = Array(-1f,0f,0f, 0f,1f,0f, 1f,0f,0f)
 
-    def renderFrame[GLT <: Context](gl: GLT, window: Long)(implicit ec: ExecutionContext): Future[Unit] = async {
+    def asyncRenderLoop(gl: GLT, window: Long)(implicit ec: ExecutionContext): Future[Unit] = async {
 
-        println(Thread.currentThread().getId())
-
-        gl.clear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        //gl.clear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         glfwSwapBuffers(window)
         glfwPollEvents()
 
         if (!glfwWindowShouldClose(window) ) {
-            await{ renderFrame(gl, window) }
+            await{ renderFrame(gl) }
+            await{ asyncRenderLoop(gl, window)(ec) }
         } else {
              glfwDestroyWindow(window)
         }
 
-    }
+    }(ec)
 
     def main(args: Array[String]): Unit={
-
-        println(Thread.currentThread().getId())
 
         LoggerConfig.factory = PrintLoggerFactory
         LoggerConfig.level = LogLevel.TRACE
 
         logger.info("main()")
 
+        Await.result( async {
 
-        //glfwMakeContextCurrent(NULL)
+            val (gl, ext) = await( init() )
 
-        acquire( new PostingExecutionContextRunner) { glRunner =>
-            val glContextExecutor = glRunner.executionContext
+            await(asyncRenderLoop(gl, ext.window))
 
-            val rr = async {
-
-                println(Thread.currentThread().getId())
-
-                val initResult=GLFW.glfwInit()
-                assume(initResult)
-                GLFWErrorCallback.createPrint(System.err).set()
-
-                val gl = new gie.gl.LwjglContext
-                import gl.BufferDataDispatch._
-
-                val window = glfwCreateWindow(1024, 1024, "Hello World!", NULL, NULL)
-
-                println(Thread.currentThread().getId())
-
-                glfwMakeContextCurrent(window)
-                glfwSwapInterval(1)
-                glfwShowWindow(window)
-
-                GLES.createCapabilities()
-                gl.clearColor(0.0f, 1.0f, 0.0f, 0.0f)
-
-                await(renderFrame(gl, window)(glContextExecutor))
-
-            }(glContextExecutor)
-
-            Await.result(rr, Duration.Inf)
-
-        }
+        }, Duration.Inf)
 
     }
+
 
 }

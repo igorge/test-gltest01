@@ -3,6 +3,8 @@ generated/
 cmake-build-*
 target
 lib
+jvm/*.log
+
 
 
 
