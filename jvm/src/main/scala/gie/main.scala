@@ -14,7 +14,7 @@ import slogging._
 
 import scala.concurrent.{Await, ExecutionContext, Promise}
 import scala.concurrent.duration.Duration
-import scala.util.Success
+import scala.util.{Failure, Success}
 //import resource._
 
 import scala.concurrent.Future
@@ -34,12 +34,13 @@ trait RenderingTrait { this: LoggerHolder =>
     }
 
 
+    def terminate(cause: Option[Throwable]): Unit
+
+
 }
 
 
 object app extends RenderingTrait with LazyLogging {
-
-    import gie.gl.RichImplicits._
 
     case class ExtT(window: Long)
     type GLT = gie.gl.LwjglContext
@@ -66,23 +67,30 @@ object app extends RenderingTrait with LazyLogging {
         ( gl, ExtT(window) )
     }
 
-    val triangle = Array(-1f,0f,0f, 0f,1f,0f, 1f,0f,0f)
 
-    def asyncRenderLoop(gl: GLT, window: Long)(implicit ec: ExecutionContext): Future[Unit] = async {
+    def terminate(cause: Option[Throwable]): Unit = {
+        glRunner.close()
+    }
 
-        //gl.clear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+    def asyncRenderLoop(gl: GLT, window: Long): Unit = async {
 
         glfwSwapBuffers(window)
         glfwPollEvents()
 
         if (!glfwWindowShouldClose(window) ) {
             await{ renderFrame(gl) }
-            await{ asyncRenderLoop(gl, window)(ec) }
+            asyncRenderLoop(gl, window)  // post new and return current, we are not waiting here
         } else {
-             glfwDestroyWindow(window)
+            glfwDestroyWindow(window)
+            terminate(None)
         }
 
-    }(ec)
+    } onComplete {
+        case Success(_) =>
+        case Failure (e) =>
+            logger.warn( s"RENDER LOOP EXCEPTION: ${gie.getExceptionStackTrace(e)}" )
+            terminate(Some(e))
+    }
 
     def main(args: Array[String]): Unit={
 
@@ -95,10 +103,12 @@ object app extends RenderingTrait with LazyLogging {
 
             val (gl, ext) = await( init() )
 
-            await(asyncRenderLoop(gl, ext.window))
+            asyncRenderLoop(gl, ext.window)
 
         }, Duration.Inf)
 
+
+        logger.debug("main() terminated.")
     }
 
 
