@@ -1,43 +1,22 @@
 package gie.gltest01
 
 
-//import org.lwjgl.opengles.GLES20.cre
 import gie.concurrent.PostingExecutionContextRunner
 import gie.gl.Context
-import gie.utils.loan.{acquire, makeManagedResource}
 import org.lwjgl.system.MemoryUtil.NULL
 import org.lwjgl.glfw.{GLFW, GLFWErrorCallback}
 import org.lwjgl.glfw.GLFW._
 import org.lwjgl.opengles.GLES
-import org.lwjgl.opengles.GLES20._
+//import org.lwjgl.opengles.GLES20._
 import slogging._
 
 import scala.concurrent.{Await, ExecutionContext, Promise}
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}
-//import resource._
 
 import scala.concurrent.Future
 
 import scala.async.Async.{async, await}
-
-trait RenderingTrait { this: LoggerHolder =>
-    type GLT <: Context
-    type ExtT <: AnyRef
-
-    implicit def glEc: ExecutionContext
-
-    def init(): Future[(GLT,ExtT)]
-
-    def renderFrame(gl: GLT): Future[Unit] = async {
-        gl.clear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-    }
-
-
-    def terminate(cause: Option[Throwable]): Unit
-
-
-}
 
 
 object app extends RenderingTrait with LazyLogging {
