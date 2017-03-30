@@ -16,7 +16,7 @@ trait RenderingTrait { this: LoggerHolder =>
 
     def init(): Future[(GLT,ExtT)]
 
-    def renderFrame(gl: GLT): Future[Unit] = async {
+    def renderFrame(gl: GLT): Unit = {
         gl.clear (gl.const.COLOR_BUFFER_BIT | gl.const.DEPTH_BUFFER_BIT)
     }
 

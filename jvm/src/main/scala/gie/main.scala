@@ -41,7 +41,7 @@ object app extends RenderingTrait with LazyLogging {
         glfwShowWindow(window)
 
         GLES.createCapabilities()
-        gl.clearColor(0.0f, 1.0f, 0.0f, 0.0f)
+        gl.clearColor(0.0f, 1.0f, 0.0f, 1.0f)
 
         ( gl, ExtT(window) )
     }
@@ -57,7 +57,7 @@ object app extends RenderingTrait with LazyLogging {
         glfwPollEvents()
 
         if (!glfwWindowShouldClose(window) ) {
-            await{ renderFrame(gl) }
+            renderFrame(gl)
             asyncRenderLoop(gl, window)  // post new and return current, we are not waiting here
         } else {
             glfwDestroyWindow(window)
