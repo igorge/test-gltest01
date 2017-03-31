@@ -33,7 +33,7 @@ object app extends RenderingTrait with LazyLogging {
         assume(initResult)
         GLFWErrorCallback.createPrint(System.err).set()
 
-        val gl = new gie.gl.LwjglContext
+        gl = new gie.gl.LwjglContext
         val window = glfwCreateWindow(1024, 1024, "Hello World!", NULL, NULL)
 
         glfwMakeContextCurrent(window)
@@ -51,14 +51,14 @@ object app extends RenderingTrait with LazyLogging {
         glRunner.close()
     }
 
-    def asyncRenderLoop(gl: GLT, window: Long): Unit = async {
+    def asyncRenderLoop(window: Long): Unit = async {
 
         glfwSwapBuffers(window)
         glfwPollEvents()
 
         if (!glfwWindowShouldClose(window) ) {
-            renderFrame(gl)
-            asyncRenderLoop(gl, window)  // post new and return current, we are not waiting here
+            renderFrame()
+            asyncRenderLoop(window)  // post new and return current, we are not waiting here
         } else {
             glfwDestroyWindow(window)
             terminate(None)

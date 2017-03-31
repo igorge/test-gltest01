@@ -20,18 +20,16 @@ object app extends JSApp with RenderingTrait with LazyLogging {
 
     def queueExecutionContext: ExecutionContext = scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 
-    implicit def glEc: ExecutionContext = RequestAnimationFrameExecutionContext
-
-    var rawGL:dom.raw.WebGLRenderingContext = null
+    implicit def glEc: ExecutionContext = queueExecutionContext
 
     def init(): Future[(GLT,ExtT)] = async {
 
         val canvas = dom.document.getElementById("render-canvas").asInstanceOf[dom.html.Canvas]
         assume(canvas ne null)
 
-        rawGL = canvas.getContext("webgl").asInstanceOf[dom.raw.WebGLRenderingContext]
+        val rawGL = canvas.getContext("webgl").asInstanceOf[dom.raw.WebGLRenderingContext]
 
-        val gl = new GLT(rawGL)
+        gl = new GLT(rawGL)
 
         gl.clearColor(0.0f, 1.0f, 0.0f, 1.0f)
 
@@ -44,13 +42,13 @@ object app extends JSApp with RenderingTrait with LazyLogging {
     }
 
 
-    def asyncRenderLoop(gl: GLT): Unit = async {
+    def asyncRenderLoop(): Unit = async {
         assume(gl ne null)
-        logger.debug("!!")
+        logger.debug("!!!")
 
-        renderFrame(gl)
+        val r = await{ async {renderFrame()}(RequestAnimationFrameExecutionContext) }
 
-        asyncRenderLoop(gl)
+        asyncRenderLoop()
     } onComplete {
         case Success(_) =>
         case Failure (e) =>
@@ -71,7 +69,7 @@ object app extends JSApp with RenderingTrait with LazyLogging {
 
             init().onComplete {
                 case Success(r) =>
-                    asyncRenderLoop(r._1)
+                    asyncRenderLoop()
                 case Failure(ex) =>
                     logger.debug(s">> ${ex}")
             }

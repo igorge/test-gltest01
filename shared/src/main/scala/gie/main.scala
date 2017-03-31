@@ -14,12 +14,13 @@ trait RenderingTrait { this: LoggerHolder =>
 
     implicit def glEc: ExecutionContext
 
+    var gl: GLT = _
+
     def init(): Future[(GLT,ExtT)]
 
-    def renderFrame(gl: GLT): Unit = {
+    var renderFrame: ()=>Unit = ()=>{
         gl.clear (gl.const.COLOR_BUFFER_BIT | gl.const.DEPTH_BUFFER_BIT)
     }
-
 
     def terminate(cause: Option[Throwable]): Unit
 
