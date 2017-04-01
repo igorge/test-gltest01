@@ -50,6 +50,7 @@ lazy val app = crossProject.in(file(".")).
     libraryDependencies += "com.lihaoyi" %%% "utest" % "0.4.5" % "test",
     libraryDependencies += "biz.enef" %%% "slogging" % "0.5.2",
     libraryDependencies += "gie" %%% "gielib" % "0.1-SNAPSHOT",
+    libraryDependencies += "gie" %%% "sml" % "0.1-SNAPSHOT",
     libraryDependencies += "org.scala-lang.modules" %% "scala-async" % "0.9.6",
 
     testFrameworks += new TestFramework("utest.runner.Framework")

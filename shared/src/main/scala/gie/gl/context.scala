@@ -315,7 +315,7 @@ trait Context {
     optCheckGlError()
   }
 
-  @inline final def attachShader(program: GLProgram, shader: GLShader): Unit={
+  @inline final def attachShader(program: Context#GLProgram, shader: Context#GLShader): Unit={
     impl_glAttachShader(program, shader)
     optCheckGlError()
   }

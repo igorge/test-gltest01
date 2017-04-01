@@ -82,7 +82,7 @@ object app extends RenderingTrait with LazyLogging {
 
             val (gl, ext) = await( init() )
 
-            asyncRenderLoop(gl, ext.window)
+            asyncRenderLoop(ext.window)
 
         }, Duration.Inf)
 

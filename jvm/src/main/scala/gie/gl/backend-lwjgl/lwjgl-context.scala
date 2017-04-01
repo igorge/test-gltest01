@@ -112,7 +112,7 @@ class LwjglContext extends Context with resource.ResourceContext with LazyLoggin
         def dispose() = resource.dispose()
     }
 
-    type GLUniformLocation = this.type
+    type GLUniformLocation = Int
     type GLTexture = this.type
 
 
@@ -120,9 +120,9 @@ class LwjglContext extends Context with resource.ResourceContext with LazyLoggin
     private var m_currentProgram:GLProgram = null
 
 
-    def uniformLocation_null: LwjglContext.this.type = ???
+    def uniformLocation_null: GLUniformLocation = ???
 
-    def uniformLocation_null_?(x: LwjglContext.this.type): Boolean = ???
+    def uniformLocation_null_?(x: GLUniformLocation): Boolean = ???
 
     def program_null: GLProgram = null
 
@@ -295,17 +295,19 @@ class LwjglContext extends Context with resource.ResourceContext with LazyLoggin
 
     def impl_glDisableVertexAttribArray(index: GLVertexAttributeLocation): Unit = ???
 
-    def impl_glGetUniformLocation(program: GLProgram, name: String): LwjglContext.this.type = ???
+    def impl_glGetUniformLocation(program: GLProgram, name: String): GLUniformLocation = ???
 
     def impl_glGetAttribLocation(program: GLProgram, name: String): GLVertexAttributeLocation = ???
 
-    def impl_glUniform1f(location: LwjglContext.this.type, x: Float): Unit = ???
+    def impl_glUniform1f(location: GLUniformLocation, x: Float): Unit = ???
 
-    def impl_glUniform4fv(location: LwjglContext.this.type, v: Array[Float]): Unit = ???
+    def impl_glUniform4fv(location: GLUniformLocation, v: Array[Float]): Unit = ???
 
-    def impl_glUniform1i(location: LwjglContext.this.type, v: GLVertexAttributeLocation): Unit = ???
+    def impl_glUniform1i(location: GLUniformLocation, v: GLVertexAttributeLocation): Unit = ???
 
-    def impl_glUniformMatrix4fv(location: LwjglContext.this.type, transpose: Boolean, v: Array[Float]): Unit = ???
+    def impl_glUniformMatrix4fv(location: GLUniformLocation, transpose: Boolean, v: Array[Float]): Unit = {
+        glUniformMatrix4fv(location,transpose,v)
+    }
 
     def impl_glDrawArrays(mode: GLVertexAttributeLocation, first: GLVertexAttributeLocation, count: GLVertexAttributeLocation): Unit = ???
 
